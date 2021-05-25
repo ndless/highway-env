@@ -75,7 +75,7 @@ class HighwayEnv(AbstractEnv):
                     other_vehicles_type.create_random(self.road, spacing=1 / self.config["vehicles_density"])
                 )
 
-    def _reward(self, action: Action) -> float:
+    def _reward(self, action: int) -> float:
         """
         The reward is defined to foster driving at high speed, on the rightmost lanes, and to avoid collisions.
         :param action: the last action performed
@@ -89,6 +89,10 @@ class HighwayEnv(AbstractEnv):
             + self.config["collision_reward"] * self.vehicle.crashed \
             + self.config["right_lane_reward"] * lane / max(len(neighbours) - 1, 1) \
             + self.config["high_speed_reward"] * np.clip(scaled_speed, 0, 1)
+
+        # "Reward" lane change Left and Right actions
+        if action == 0 or action == 2:
+            reward = reward + self.config["lane_change_reward"]
         reward = utils.lmap(reward,
                           [self.config["collision_reward"],
                            self.config["high_speed_reward"] + self.config["right_lane_reward"]],
